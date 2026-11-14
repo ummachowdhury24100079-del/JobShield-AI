@@ -90,6 +90,8 @@ st.markdown("""
     border-radius: 18px;
     border: 1px solid #C5EDF0;
     margin-bottom: 15px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
 }
 
 .stButton > button {
@@ -129,10 +131,6 @@ h1, h2, h3 {
 """, unsafe_allow_html=True)
 
 
-# ==============================
-# HELPER FUNCTIONS
-# ==============================
-
 def metric_card(label, value):
     st.markdown(f"""
     <div class="metric-card">
@@ -143,7 +141,6 @@ def metric_card(label, value):
 
 
 def get_model_signals(text, model, prediction):
-
     try:
         vectorizer = model.named_steps["tfidf"]
         classifier = model.named_steps["classifier"]
@@ -165,7 +162,6 @@ def get_model_signals(text, model, prediction):
             return []
 
         direction = 1 if prediction == 1 else -1
-
         contributions = values * weights * direction
 
         indices = np.argsort(contributions)[::-1]
@@ -173,7 +169,6 @@ def get_model_signals(text, model, prediction):
         signals = []
 
         for index in indices:
-
             if contributions[index] <= 0:
                 continue
 
@@ -195,7 +190,6 @@ def get_model_signals(text, model, prediction):
 
 
 def highlight_evidence(text, signals, prediction):
-
     safe_text = html.escape(text)
 
     if not signals:
@@ -225,7 +219,6 @@ def highlight_evidence(text, signals, prediction):
 
 
 def show_prediction(text, model_name):
-
     model = models[model_name]
 
     prediction = int(model.predict([text])[0])
@@ -240,7 +233,6 @@ def show_prediction(text, model_name):
     st.subheader("Prediction Result")
 
     if prediction == 1:
-
         st.error("🚨 FAKE JOB DETECTED")
 
         st.markdown(
@@ -255,7 +247,6 @@ def show_prediction(text, model_name):
         )
 
     else:
-
         st.success("✅ REAL JOB DETECTED")
 
         st.markdown(
@@ -270,7 +261,6 @@ def show_prediction(text, model_name):
         )
 
     if signals:
-
         highlighted = highlight_evidence(
             text,
             signals,
@@ -293,11 +283,9 @@ def show_prediction(text, model_name):
 
         st.markdown("### Important Identified Terms")
 
-        for word in signals:
-            st.markdown(f"- **{html.escape(word)}**")
+        st.write(", ".join(signals))
 
     else:
-
         st.info(
             "No clear individual text features could be highlighted."
         )
@@ -307,10 +295,6 @@ def show_prediction(text, model_name):
         "They do not guarantee the actual legitimacy of a job."
     )
 
-
-# ==============================
-# SIDEBAR NAVIGATION
-# ==============================
 
 st.sidebar.markdown("# 🌸 JobShield AI")
 st.sidebar.caption("AI-Based Fake Job Detection System")
@@ -329,10 +313,6 @@ st.sidebar.markdown("---")
 st.sidebar.caption("Machine Learning Project")
 st.sidebar.caption("Light Pink • White • Cyan")
 
-
-# ==============================
-# HOME DASHBOARD
-# ==============================
 
 if page == "Home Dashboard":
 
@@ -371,7 +351,6 @@ if page == "Home Dashboard":
     a, b = st.columns(2)
 
     with a:
-
         st.markdown("""
         <div class="section-card">
         <h3>🔍 Job Prediction</h3>
@@ -381,7 +360,6 @@ if page == "Home Dashboard":
         """, unsafe_allow_html=True)
 
     with b:
-
         st.markdown("""
         <div class="section-card">
         <h3>📊 Model Comparison</h3>
@@ -395,10 +373,6 @@ if page == "Home Dashboard":
         "predictions to support safer job searching."
     )
 
-
-# ==============================
-# JOB PREDICTION
-# ==============================
 
 elif page == "Job Prediction":
 
@@ -414,13 +388,16 @@ elif page == "Job Prediction":
         unsafe_allow_html=True
     )
 
+    st.markdown("## Enter Job Information")
+
     job_text = st.text_area(
         "Paste Complete Job Description",
         height=280,
         placeholder=(
             "Enter job title, company details, description, "
             "requirements, salary and other information..."
-        )
+        ),
+        key="job_description"
     )
 
     st.markdown("### Select Machine Learning Model")
@@ -444,22 +421,16 @@ elif page == "Job Prediction":
     ):
 
         if not job_text.strip():
-
             st.warning(
                 "Please enter a job description first."
             )
 
         else:
-
             show_prediction(
                 job_text,
                 selected_model
             )
 
-
-# ==============================
-# MODEL COMPARISON
-# ==============================
 
 elif page == "Model Comparison":
 
@@ -480,7 +451,6 @@ elif page == "Model Comparison":
     chart_data = results.copy()
 
     for col in metric_columns:
-
         if col not in chart_data.columns:
             st.error(f"Missing metric column: {col}")
             st.stop()
@@ -497,7 +467,6 @@ elif page == "Model Comparison":
     width = 0.18
 
     for i, metric in enumerate(metric_columns):
-
         bars = ax.bar(
             x + (i - 1.5) * width,
             chart_data[metric],
@@ -515,9 +484,7 @@ elif page == "Model Comparison":
     ax.set_ylabel("Performance (%)")
     ax.set_xlabel("Machine Learning Models")
 
-    ax.set_title(
-        "Model Performance Comparison"
-    )
+    ax.set_title("Model Performance Comparison")
 
     ax.set_xticks(x)
     ax.set_xticklabels(
@@ -541,7 +508,6 @@ elif page == "Model Comparison":
     display_data = chart_data.copy()
 
     for col in metric_columns:
-
         display_data[col] = display_data[col].map(
             lambda value: f"{value:.2f}%"
         )
